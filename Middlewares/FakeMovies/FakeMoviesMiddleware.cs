@@ -17,12 +17,13 @@ namespace Middlewares
         public async Task InvokeAsync(HttpContext context)
         {
             var path = context.Request.Path;
-           System.Console.WriteLine("path variable" , path);
+
             if (!string.IsNullOrEmpty(path) && path == "/movies")
             {
                 var moviesInString = GetMoviesInString();
-               context.Response.ContentLength = System.Text.Encoding.UTF8.GetByteCount(moviesInString);
+                context.Response.ContentLength = System.Text.Encoding.UTF8.GetByteCount(moviesInString);
                 await context.Response.WriteAsync(moviesInString);
+                return;
             }
             await _next(context);
         }

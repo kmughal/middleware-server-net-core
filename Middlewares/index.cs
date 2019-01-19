@@ -10,7 +10,8 @@ namespace Middlewares
             return appBuilder.UseMiddleware<FakeMoviesMiddleware>();
         }
 
-        public static IApplicationBuilder UseHelloWorldMiddleware(this IApplicationBuilder appBuilder) {
+        public static IApplicationBuilder UseHelloWorldMiddleware(this IApplicationBuilder appBuilder)
+        {
             return appBuilder.UseMiddleware<HelloWorldMiddleware>();
         }
     }

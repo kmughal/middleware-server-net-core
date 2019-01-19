@@ -6,13 +6,18 @@ namespace Services
      public class FakeMoviesService
     {
         public static FakeMoviesService Instance = new FakeMoviesService();
+        private List<Movie> _movies = new List<Movie>
+            {
+                new Movie { Name = "Escape Room", ReleaseYear = new DateTime(2017, 02, 01), Country = "USA" },
+                new Movie { Name = "Fake movie", ReleaseYear = new DateTime(2007, 02, 01), Country = "UK" }
+            };
         public List<Movie> GetMovies()
         {
-            return new List<Movie>
-            {
-                new Movie { Name = "Escape Room", RelaseYear = new DateTime(2017, 02, 01), Country = "USA" },
-                new Movie { Name = "Fake movie", RelaseYear = new DateTime(2007, 02, 01), Country = "UK" }
-            };
+            return _movies;
+        }
+
+        public void AddMovie(Movie movie) {
+            _movies.Add(movie);
         }
     }
 }

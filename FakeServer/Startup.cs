@@ -8,6 +8,7 @@ namespace FakeServer
     using Middlewares;
     using Models;
     using Services;
+    using System.Net;
 
     internal class Startup
     {
@@ -23,8 +24,22 @@ namespace FakeServer
             app.Map("/AddMovie", appBuilder =>
             {
                 appBuilder.Run(async context =>
-                {   
-                    Movie newMovie = context.Request.ReadMovieFromRequest();
+                {
+                    Movie newMovie = null;
+                    try
+                    {
+                        newMovie = context.Request.ReadMovieFromRequest();
+                    }
+                    catch (NotSupportedException)
+                    {
+                        context.Response.StatusCode = (int)HttpStatusCode.BadGateway;
+                        return;
+                    }
+                    catch (InvalidTimeZoneException)
+                    {
+                        context.Response.StatusCode = (int)HttpStatusCode.BadGateway;
+                        return;
+                    }
                     FakeMoviesService.Instance.AddMovie(newMovie);
                     await context.Response.WriteAsync($"{newMovie.ToString()} added");
                 });

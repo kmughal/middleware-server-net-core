@@ -1,16 +1,32 @@
 namespace IoC.Decorator.Example
 {
+    using System.Net.Http;
+    using System.Net;
     using System;
+    using Infrastructure;
     using Microsoft.Extensions.DependencyInjection;
 
     public sealed class IocProvider
     {
-        private static IServiceProvider _serviceProvider = new ServiceCollection()
-            .AddTransient<IFoo>(CreateService<IFoo>)
-            .BuildServiceProvider();
+        private static IServiceProvider CreateServiceProvider()
+        {
+            var serviceCollection = new ServiceCollection();
+            serviceCollection.AddTransient<IFoo>(CreateService<IFoo>);
+            serviceCollection.AddHttpClient<MovieHttpClient>()
+                .ConfigurePrimaryHttpMessageHandler(handler => new HttpClientHandler
+                {
+                    AutomaticDecompression = DecompressionMethods.GZip
+                });
 
-        private static TService CreateService<TService>(IServiceProvider sp) {
-            if (typeof(TService) == typeof(IFoo)) {
+            return serviceCollection.BuildServiceProvider();
+        }
+
+        private static IServiceProvider _serviceProvider = CreateServiceProvider();
+
+        private static TService CreateService<TService>(IServiceProvider sp)
+        {
+            if (typeof(TService) == typeof(IFoo))
+            {
                 var foo = new Foo();
                 dynamic service = new StartTimeAttribute(foo);
                 return service;

@@ -11,12 +11,20 @@
     using static System.Console;
     using System.Diagnostics;
     using System.IO;
+    using System.Net;
     using System.Threading.Tasks;
+    using Infrastructure;
     using Newtonsoft.Json;
 
     class Program
     {
-        private static readonly HttpClient client = new HttpClient();
+        // public static IHttpClientFactory httpClientFactory { get; } = 
+        //     IocProvider.ServiceProvider.GetService<IHttpClientFactory>();
+        private static readonly MovieHttpClient movieClient = IocProvider.ServiceProvider.GetService<MovieHttpClient>();
+        //new HttpClient(new HttpClientHandler() { AutomaticDecompression = DecompressionMethods.GZip });
+
+        private static HttpClient client = movieClient.Client;
+
         const string url = "http://localhost:3000";
         static void Main(string[] args)
         {
@@ -25,8 +33,14 @@
             FakeServer.FakeServer.StartServer(url);
             ReadMoviesFromStream();
             ReadMoviesWithOutUsingStreams();
-            Task.Delay(100);
-            AddNewMovie().GetAwaiter().GetResult();
+            Task.Delay(1000);
+            var tasks = new List<Task<bool>>();
+            for (int i = 0; i < 100; i++)
+            {
+                tasks.Add(movieClient.AddNewMovie());
+            }
+             Task.Delay(5000);
+            Task.WaitAll(tasks.ToArray());
             Console.Read();
         }
 
@@ -52,6 +66,7 @@
                 {
                     requestMessage.Content = streamContent;
                     requestMessage.Content.Headers.ContentType = new MediaTypeWithQualityHeaderValue("application/json");
+                    requestMessage.Headers.AcceptEncoding.Add(new StringWithQualityHeaderValue("gzip"));
 
                     var response = await client.SendAsync(requestMessage);
                     response.EnsureSuccessStatusCode();
@@ -70,6 +85,7 @@
             var sw = Stopwatch.StartNew();
             var request = new HttpRequestMessage(HttpMethod.Get, $"{url}/movies");
             request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            request.Headers.AcceptEncoding.Add(new StringWithQualityHeaderValue("gzip"));
             using(var response = await client.SendAsync(request))
             {
                 response.EnsureSuccessStatusCode();
@@ -99,6 +115,7 @@
             var sw = Stopwatch.StartNew();
             var request = new HttpRequestMessage(HttpMethod.Get, $"{url}/movies");
             request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            request.Headers.AcceptEncoding.Add(new StringWithQualityHeaderValue("gzip"));
 
             using(var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead))
             {
